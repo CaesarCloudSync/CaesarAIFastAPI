@@ -12,6 +12,7 @@ COPY ./requirements.txt /code/requirements.txt
 # Install requirements.txt 
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
+
 # Set up a new user named "user" with user ID 1000
 RUN useradd -m -u 1000 user
 # Switch to the "user" user
@@ -25,6 +26,8 @@ WORKDIR $HOME/app
 
 # Copy the current directory contents into the container at $HOME/app setting the owner to the user
 COPY --chown=user . $HOME/app
+ENV GOOGLE_APPLICATION_CREDENTIALS=$HOME/app/service_account.json
+
 EXPOSE 8080
 #CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860","--reload"]
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080","--reload"]

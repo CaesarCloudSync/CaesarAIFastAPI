@@ -2,8 +2,8 @@ version: "3.8"
 
 services:
   web:
-    image: palondomus/caesaraifastapi:local
-    container_name: caesaraifastapilocal
+    image: palondomus/blustoryvideoconverter:local
+    container_name: blustoryvideoconverterlocal
     build:
       context: .
     ports:
