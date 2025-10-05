@@ -46,7 +46,7 @@ os.makedirs(TEMP_DIR, exist_ok=True)
 @app.post("/convert-to-video/")
 async def convert_images_to_video(
     files: List[UploadFile] = File(...),
-    fps: int = Form(24),
+    fps: int = Form(1),
     video_name: str = Form("output_video.mp4")
 ):
     """
