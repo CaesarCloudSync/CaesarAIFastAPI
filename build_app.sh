@@ -24,11 +24,13 @@ sed -i -e "s/$image:$oldv/$image:$newv/" main.tf
 docker build -t palondomus/$image:$newv .
 docker push palondomus/$image:$newv
 
+export TF_VAR_image="palondomus/$image:$newv"
+cd deployment
 # Terraform Push Google Cloud
 terraform init
 terraform plan 
 terraform apply -auto-approve
-
+cd ..
 # Push Github
 git add .
 git commit -m "$1"
@@ -36,7 +38,7 @@ git push origin -u main:main
 
 # Test application
 docker run -it -p 8080:8080 palondomus/$image:$newv
-
+image = "raushanraja/fastapi-hello-world:latest"
 
 
 

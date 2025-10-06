@@ -43,17 +43,18 @@ TEMP_DIR = Path(tempfile.mkdtemp())
 os.makedirs(TEMP_DIR, exist_ok=True)
 
 
+
 @app.post("/convert-to-video/")
 async def convert_images_to_video(
     files: List[UploadFile] = File(...),
     fps: int = Form(1),
-    video_name: str = Form("output_video.mp4")
+    video_name: str = Form("output_video.webm"),
+    seconds_per_image: int = Form(5)
 ):
     """
-    Convert uploaded images to a video and upload it to Google Cloud Storage.
+    Convert uploaded images to a WebM video and upload it to Google Cloud Storage.
     Each image will stay in the video for 5 seconds.
     """
-
     image_paths = []
 
     try:
@@ -79,14 +80,17 @@ async def convert_images_to_video(
             raise HTTPException(status_code=500, detail="Failed to read first image")
 
         height, width, layers = first_frame.shape
-        temp_video_path = TEMP_DIR / "temp_video.mp4"
+        temp_video_path = TEMP_DIR / "temp_video.webm"
 
-        # Set up video writer (MP4 codec)
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-        video_writer = cv2.VideoWriter(str(temp_video_path), fourcc, fps, (width, height))
+        # Set up video writer (VP8 codec for WebM)
+        fourcc = cv2.VideoWriter_fourcc(*"VP80")
+        video_writer = cv2.VideoWriter(str(temp_video_path), fourcc, fps, (width, height), isColor=True)
+
+        if not video_writer.isOpened():
+            raise HTTPException(status_code=500, detail="Failed to open VideoWriter. Ensure OpenCV is built with libvpx support.")
 
         # Each image stays on screen for 5 seconds
-        seconds_per_image = 5
+      
         frames_per_image = int(fps * seconds_per_image)
 
         # Write frames
@@ -111,8 +115,10 @@ async def convert_images_to_video(
 
         # Upload to GCS
         gcs_blob = bucket.blob(f"videos/{video_name}")
-        gcs_blob.upload_from_filename(str(temp_video_path), content_type="video/mp4")
+        gcs_blob.upload_from_filename(str(temp_video_path), content_type="video/webm")
         gcs_blob.make_public()
+        gcs_blob.cache_control = 'no-cache, max-age=0'
+        gcs_blob.patch()
 
         # Cleanup
         temp_video_path.unlink(missing_ok=True)
@@ -134,7 +140,6 @@ async def convert_images_to_video(
         for path in image_paths:
             Path(path).unlink(missing_ok=True)
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.get("/health")
 async def health_check():
