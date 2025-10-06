@@ -2,12 +2,16 @@ version: "3.8"
 
 services:
   web:
-    image: palondomus/blustoryvideoconverter:local
-    container_name: blustoryvideoconverterlocal
+    image: ${FULL_IMAGE}
+    container_name: ${IMAGE}  # Replace / with - for container name
     build:
       context: .
     ports:
       - "8080:8080"
+    volumes:
+      - ./deployment/service_account.json:/app/service_account.json
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /app/service_account.json
     stdin_open: true   # equivalent to -it
     tty: true          # equivalent to -it
     restart: unless-stopped
