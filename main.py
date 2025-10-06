@@ -16,7 +16,7 @@ import uvicorn
 
 
 app = FastAPI(
-    title="Image to Video Converter",
+    title="BluStory App Image to Video Converter",
     description="Convert uploaded images to video and store in Google Cloud Storage"
 )
 
@@ -42,7 +42,9 @@ bucket = storage_client.bucket(GCS_BUCKET_NAME)
 TEMP_DIR = Path(tempfile.mkdtemp())
 os.makedirs(TEMP_DIR, exist_ok=True)
 
-
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the BluStory App Image to Video Converter API"}
 
 @app.post("/convert-to-video/")
 async def convert_images_to_video(
